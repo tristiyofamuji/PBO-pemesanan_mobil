@@ -7,9 +7,9 @@ import java.util.List;
 
 public class DatabaseManager {
     private static DatabaseManager instance;
-    private static final String URL = "jdbc:mysql://217.21.72.42:3306/u9432035_nanda?zeroDateTimeBehavior=CONVERT_TO_NULL";
-    private static final String USER = "u9432035_aksi_pintar";
-    private static final String PASSWORD = "Aksipintar2021";
+    private static final String URL = "";//silahkan isi sendiri untuk URL koneksi database ini
+    private static final String USER = "root";
+    private static final String PASSWORD = "";
 
     // Private constructor to prevent instantiation
     private DatabaseManager() {}
