@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DataPelangganPanel extends JPanel {
+public class DataMobilPanel extends JPanel {
 
     private static final int ROWS_PER_PAGE = 25;
     private int currentPage = 1;
@@ -19,21 +19,21 @@ public class DataPelangganPanel extends JPanel {
     private JTable table;
     private DatabaseManager dbManager;
 
-    public DataPelangganPanel() {
+    public DataMobilPanel() {
         setLayout(new BorderLayout());
         dbManager = DatabaseManager.getInstance();
-        model = new DefaultTableModel(new String[]{
-                "ID", "Nama Pelanggan", "Nomor Telepon",
-                "Alamat", "Email", "Created At"}, 0) {
+        model = new DefaultTableModel(new String[]{"ID", "Nama Mobil", "Tipe Mobil", "Tahun Mobil", "Plat Nomor", "Harga Sewa", "Status", "Created At"}, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
                 return false; // Nonaktifkan edit langsung di tabel
             }
         };
-        // Inisialisasi tabel
         table = new JTable(model);
-        add(new JScrollPane(table), BorderLayout.CENTER);
 
+        fetchAndDisplayData();
+        // Tambahkan panel untuk pagination
+        JPanel paginationPanel = createPaginationPanel();
+        add(paginationPanel, BorderLayout.SOUTH);
 
         // Tambahkan MouseListener untuk mendeteksi klik dua kali pada baris
         table.addMouseListener(new MouseAdapter() {
@@ -42,42 +42,39 @@ public class DataPelangganPanel extends JPanel {
                 if (e.getClickCount() == 2 && table.getSelectedRow() != -1) {  // Double-click
                     int selectedRow = table.convertRowIndexToModel(table.getSelectedRow());
                     Object[] rowData = allData.get(selectedRow);
-                    int customerId = (int) rowData[0];  // Ambil ID pelanggan
-                    new EditCustomerDialog((JFrame) SwingUtilities.getWindowAncestor(DataPelangganPanel.this),
-                            customerId, rowData, DataPelangganPanel.this).setVisible(true);
+                    int carId = (int) rowData[0];  // Ambil ID pelanggan
+                    new EditMobilDialog((JFrame) SwingUtilities.getWindowAncestor(DataMobilPanel.this),
+                            carId, rowData, DataMobilPanel.this).setVisible(true);
                 }
             }
         });
 
-        fetchAndDisplayData();
-
-        // Tambahkan panel untuk pagination
-        JPanel paginationPanel = createPaginationPanel();
-        add(paginationPanel, BorderLayout.SOUTH);
+        add(new JScrollPane(table), BorderLayout.CENTER);
     }
 
     public void fetchAndDisplayData() {
         allData = new ArrayList<>();
         try {
-            ResultSet rs = dbManager.fetchPelangganData();
+            ResultSet rs = dbManager.fetchMobilData(); // Ganti fetchPelangganData() dengan fetchMobilData()
             while (rs.next()) {
                 allData.add(new Object[]{
                         rs.getInt("id"),
-                        rs.getString("nama_pelanggan"),
-                        rs.getString("nomor_telepon"),
-                        rs.getString("alamat"),
-                        rs.getString("email"),
+                        rs.getString("nama_mobil"),
+                        rs.getString("tipe_mobil"),
+                        rs.getInt("tahun_mobil"),
+                        rs.getString("plat_nomor"),
+                        rs.getDouble("harga_sewa_per_hari"),
+                        rs.getString("status_mobil"),
                         rs.getTimestamp("created_at")
                 });
             }
 
             displayPage(1);
-            //updateTableData();
-            System.out.println("Data pelanggan berhasil dimuat, jumlah data: " + allData.size());
+            System.out.println("Data mobil berhasil dimuat, jumlah data: " + allData.size());
 
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(this, "Gagal mengambil data pelanggan dari database.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Gagal mengambil data mobil dari database.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 

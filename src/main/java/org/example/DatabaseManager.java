@@ -7,7 +7,7 @@ import java.util.List;
 
 public class DatabaseManager {
     private static DatabaseManager instance;
-    private static final String URL = "";//silahkan isi sendiri untuk URL koneksi database ini
+    private static final String URL = "jdbc:mysql://localhost:3306/db_pemesanan_mobil?zeroDateTimeBehavior=CONVERT_TO_NULL";
     private static final String USER = "root";
     private static final String PASSWORD = "";
 
@@ -33,9 +33,9 @@ public class DatabaseManager {
         return executeQuery(query);
     }
 
-    // Ambil data dari tabel mobil
+    // Ambil data dari tabel mobil dengan kolom spesifik
     public ResultSet fetchMobilData() {
-        String query = "SELECT * FROM mobil ORDER BY id DESC";
+        String query = "SELECT id, nama_mobil, tipe_mobil, tahun_mobil, plat_nomor, harga_sewa_per_hari, status_mobil, created_at FROM mobil ORDER BY id DESC";
         return executeQuery(query);
     }
 
@@ -58,9 +58,40 @@ public class DatabaseManager {
             Statement stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
             return stmt.executeQuery(query);
         } catch (SQLException e) {
-            e.printStackTrace(); // Log the exception
-            return null; // Return null or handle the error as needed
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal mengambil data dari database.", "Error", JOptionPane.ERROR_MESSAGE);
+            return null;
         }
+    }
+
+    // Mengambil data mobil sebagai list untuk pengelolaan yang lebih aman
+    public List<Object[]> fetchMobilDataAsList() {
+        String query = "SELECT id, nama_mobil, tipe_mobil, tahun_mobil, plat_nomor, harga_sewa_per_hari, status_mobil, created_at FROM mobil ORDER BY id DESC";
+        List<Object[]> dataList = new ArrayList<>();
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            while (rs.next()) {
+                dataList.add(new Object[]{
+                        rs.getInt("id"),
+                        rs.getString("nama_mobil"),
+                        rs.getString("tipe_mobil"),
+                        rs.getInt("tahun_mobil"),
+                        rs.getString("plat_nomor"),
+                        rs.getDouble("harga_sewa_per_hari"),
+                        rs.getString("status_mobil"),
+                        rs.getTimestamp("created_at")
+                });
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal mengambil data mobil.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return dataList;
     }
 
     // Mengambil data pelanggan sebagai list untuk pengelolaan yang lebih aman
@@ -91,6 +122,34 @@ public class DatabaseManager {
         return dataList;
     }
 
+    // Mengambil data sopir sebagai list untuk pengelolaan yang lebih aman
+    public List<Object[]> fetchSopirDataAsList() {
+        String query = "SELECT * FROM sopir ORDER BY id DESC";
+        List<Object[]> dataList = new ArrayList<>();
+
+        try (Connection conn = getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(query)) {
+
+            ResultSetMetaData metaData = rs.getMetaData();
+            int columnCount = metaData.getColumnCount();
+
+            while (rs.next()) {
+                Object[] row = new Object[columnCount];
+                for (int i = 1; i <= columnCount; i++) {
+                    row[i - 1] = rs.getObject(i);
+                }
+                dataList.add(row);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal mengambil data sopir.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return dataList;
+    }
+
     // Update data
     public int updateData(String query, Object[] params) {
         try (Connection conn = getConnection();
@@ -102,8 +161,9 @@ public class DatabaseManager {
 
             return pstmt.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace(); // Log the exception
-            return 0; // Return 0 or handle the error as needed
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Gagal mengupdate data.", "Error", JOptionPane.ERROR_MESSAGE);
+            return 0;
         }
     }
 }

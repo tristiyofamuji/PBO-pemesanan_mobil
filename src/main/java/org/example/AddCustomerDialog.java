@@ -2,6 +2,8 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public class AddCustomerDialog extends JDialog {
 
@@ -23,6 +25,7 @@ public class AddCustomerDialog extends JDialog {
         JTextField nomorTeleponField = new JTextField(20);
         JTextField alamatField = new JTextField(20);
         JTextField emailField = new JTextField(20);
+        JTextField passwordField = new JTextField(20); // Field untuk password
 
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -52,28 +55,44 @@ public class AddCustomerDialog extends JDialog {
         gbc.gridx = 1;
         add(emailField, gbc);
 
-        // Tombol simpan
-        JButton saveButton = new JButton("Simpan");
-        saveButton.addActionListener(e -> saveCustomer(namaField.getText(), nomorTeleponField.getText(), alamatField.getText(), emailField.getText()));
-
         gbc.gridx = 0;
         gbc.gridy = 4;
+        add(new JLabel("Password:"), gbc);
+
+        gbc.gridx = 1;
+        add(passwordField, gbc);
+
+        // Tombol simpan
+        JButton saveButton = new JButton("Simpan");
+        saveButton.addActionListener(e -> saveCustomer(
+                namaField.getText(),
+                nomorTeleponField.getText(),
+                alamatField.getText(),
+                emailField.getText(),
+                passwordField.getText()
+        ));
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
         gbc.gridwidth = 2;
         gbc.anchor = GridBagConstraints.CENTER;
         add(saveButton, gbc);
     }
 
-    private void saveCustomer(String nama, String nomorTelepon, String alamat, String email) {
+    private void saveCustomer(String nama, String nomorTelepon, String alamat, String email, String password) {
         // Validasi input
-        if (nama.isEmpty() || nomorTelepon.isEmpty() || alamat.isEmpty() || email.isEmpty()) {
+        if (nama.isEmpty() || nomorTelepon.isEmpty() || alamat.isEmpty() || email.isEmpty() || password.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Semua field harus diisi.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
+        // Hash password menggunakan SHA-1
+        String hashedPassword = hashWithSHA1(password);
+
         // Simpan ke database
         DatabaseManager dbManager = DatabaseManager.getInstance();
-        String query = "INSERT INTO pelanggan (nama_pelanggan, nomor_telepon, alamat, email, created_at) VALUES (?, ?, ?, ?, NOW())";
-        Object[] params = {nama, nomorTelepon, alamat, email};
+        String query = "INSERT INTO pelanggan (nama_pelanggan, nomor_telepon, alamat, email, password, created_at) VALUES (?, ?, ?, ?, ?, NOW())";
+        Object[] params = {nama, nomorTelepon, alamat, email, hashedPassword};
         int rowsInserted = dbManager.updateData(query, params);
 
         if (rowsInserted > 0) {
@@ -82,6 +101,20 @@ public class AddCustomerDialog extends JDialog {
             pelangganPanel.refreshData(); // Refresh data pelanggan di panel utama
         } else {
             JOptionPane.showMessageDialog(this, "Gagal menambahkan pelanggan.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private String hashWithSHA1(String input) {
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            byte[] hashBytes = sha1.digest(input.getBytes());
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 }

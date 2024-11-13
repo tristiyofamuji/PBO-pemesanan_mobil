@@ -15,7 +15,7 @@ import java.util.Locale;
 
 public class DataTablePanel extends JPanel {
 
-    private static final int ROWS_PER_PAGE = 56;
+    private static final int ROWS_PER_PAGE = 25;
     private int currentPage = 1;
     private List<Object[]> allData;
     private DefaultTableModel model;
@@ -106,7 +106,7 @@ public class DataTablePanel extends JPanel {
             }
 
             displayPage(1);
-            System.out.println("Data berhasil dimuat, jumlah data: " + allData.size());
+            System.out.println("Data pemesanan mobil berhasil dimuat, jumlah data: " + allData.size());
 
         } catch (SQLException e) {
             e.printStackTrace();

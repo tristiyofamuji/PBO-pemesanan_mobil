@@ -8,15 +8,20 @@ public class Main extends JFrame {
     private JPanel contentArea;
     private DataTablePanel dataTablePanel;
     private DataPelangganPanel dataPelangganPanel;
+    private DataMobilPanel dataMobilPanel;
+    private DataSopirPanel dataSopirPanel;
 
     // Variabel untuk menyimpan referensi ke menu dinamis
     private JMenu tambahPelangganMenu;
     private JMenu tambahPemesanMenu;
+    private JMenu tambahMobilMenu;
+    private JMenu tambahSopirMenu;
     private JMenuBar menuBar;
 
     public Main() {
         setTitle("Aplikasi Pemesanan Mobil");
-        setExtendedState(JFrame.MAXIMIZED_BOTH);
+        //setExtendedState(JFrame.MAXIMIZED_BOTH);
+        setSize(1000,525);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
 
@@ -28,12 +33,14 @@ public class Main extends JFrame {
         // Menambahkan item menu utama
         menuBar.add(createMenu("Home", menuFont, e -> showHome()));
         menuBar.add(createMenu("Data Pelanggan", menuFont, e -> showDataPelanggan()));
-        menuBar.add(createMenu("Data Mobil", menuFont, null));
-        menuBar.add(createMenu("Data Sopir", menuFont, null));
+        menuBar.add(createMenu("Data Mobil", menuFont, e -> showDataMobil()));
+        menuBar.add(createMenu("Data Sopir", menuFont, e -> showDataSopir()));
 
         // Menambahkan menu dinamis
         tambahPelangganMenu = createStyledMenu("Tambah Pelanggan", menuFont, e -> openAddCustomerDialog());
         tambahPemesanMenu = createStyledMenu("Tambah Pemesanan", menuFont, e -> openAddOrderDialog());
+        tambahMobilMenu = createStyledMenu("Tambah Mobil", menuFont, e -> openAddCarDialog());
+        tambahSopirMenu = createStyledMenu("Tambah Sopir", menuFont, e -> openAddSopirDialog());
 
         // Menu di sebelah kanan, tampilkan menu dinamis (awalnya "Tambah Pemesanan" untuk halaman Home)
         menuBar.add(Box.createHorizontalGlue());
@@ -49,8 +56,19 @@ public class Main extends JFrame {
         // Inisialisasi dan tambahkan DataTablePanel dan DataPelangganPanel
         dataTablePanel = new DataTablePanel();
         dataPelangganPanel = new DataPelangganPanel();
+        dataMobilPanel = new DataMobilPanel();
+        dataSopirPanel = new DataSopirPanel();
         contentArea.add(dataTablePanel, BorderLayout.CENTER);
         add(contentArea, BorderLayout.CENTER);
+    }
+
+    private void showDataSopir() {
+        contentArea.removeAll();
+        contentArea.add(dataSopirPanel, BorderLayout.CENTER);
+        contentArea.revalidate();
+        contentArea.repaint();
+
+        switchToMenu(tambahSopirMenu);
     }
 
     private JMenu createMenu(String title, Font font, java.awt.event.ActionListener action) {
@@ -109,8 +127,26 @@ public class Main extends JFrame {
         switchToMenu(tambahPelangganMenu);
     }
 
+    private void showDataMobil() {
+        contentArea.removeAll();
+        contentArea.add(dataMobilPanel, BorderLayout.CENTER);
+        contentArea.revalidate();
+        contentArea.repaint();
+
+        // Ganti menu dinamis ke "Tambah Mobil" hanya saat berada di Data Mobil
+        switchToMenu(tambahMobilMenu);
+    }
+
     private void openAddCustomerDialog() {
         new AddCustomerDialog(this, dataPelangganPanel).setVisible(true);
+    }
+
+    private void openAddCarDialog() {
+        new AddCarDialog(this, dataMobilPanel).setVisible(true);
+    }
+
+    private void openAddSopirDialog() {
+        new AddSopirDialog(this, dataSopirPanel).setVisible(true);
     }
 
     private void openAddOrderDialog() {
@@ -121,9 +157,20 @@ public class Main extends JFrame {
 
     // Metode untuk mengganti menu dinamis
     private void switchToMenu(JMenu menu) {
+        // Hapus menu dinamis yang ada
         menuBar.remove(tambahPelangganMenu);
         menuBar.remove(tambahPemesanMenu);
-        menuBar.add(menu);  // Tambahkan menu dinamis baru di akhir
+        menuBar.remove(tambahMobilMenu);
+        menuBar.remove(tambahSopirMenu);
+
+        // Tambahkan menu dinamis baru hanya jika itu bukan "Tambah Mobil"
+        // atau jika berada di tampilan Data Mobil
+        if (menu == tambahMobilMenu) {
+            menuBar.add(tambahMobilMenu);
+        } else {
+            menuBar.add(menu);  // Tambahkan menu dinamis baru selain "Tambah Mobil"
+        }
+
         menuBar.revalidate();
         menuBar.repaint();
     }
